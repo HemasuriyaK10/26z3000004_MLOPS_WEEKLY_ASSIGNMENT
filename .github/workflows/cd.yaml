@@ -1,0 +1,45 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - week_6
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - uses: google-github-actions/setup-gcloud@v2
+
+    - run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - run: |
+        docker build -t iris-api ./fastapi
+
+    - run: |
+        docker tag iris-api \
+        us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-repo/iris-api:${{ github.sha }}
+
+    - run: |
+        docker push \
+        us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-repo/iris-api:${{ github.sha }}
+
+    - run: |
+        gcloud container clusters get-credentials \
+        ${{ secrets.GKE_CLUSTER }} \
+        --zone ${{ secrets.GKE_ZONE }}
+
+    - run: |
+        kubectl set image deployment/iris-api \
+        iris-api=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/iris-repo/iris-api:${{ github.sha }}
