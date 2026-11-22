@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import joblib
 
@@ -6,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 df = pd.read_csv("data/iris.csv")
 
-X = df[https://github.com/HemasuriyaK10/26z3000004_MLOPS_WEEKLY_ASSIGNMENT/pulse
+X = df[
     [
         "sepal_length",
         "sepal_width",
